@@ -79,12 +79,18 @@ pub struct Props<S: Scalar> {
     /// The target position as x or y depending on orientation - x for left
     /// and right, y for bottom and top
     pub xy2: f32,
+    /// The target position as x or y depending on orientation - x for left
+    /// and right, y for bottom and top
+    /// (used by grid)
+    pub yx2: f32,
     /// The length of ticks
     pub tick_len: f32,
     /// Any title to be drawn and associated with the axis
     pub title: Option<String>,
     /// The scaling conversion to be used with the axis
     pub scale: Rc<dyn Scale<Scalar = S>>,
+    /// Show grid
+    pub grid: bool,
 }
 
 impl<S: Scalar> PartialEq for Props<S> {
@@ -133,7 +139,7 @@ impl<S: Scalar + 'static> Component for Axis<S> {
         }
     }
 
-    fn changed(&mut self, _ctx: &Context<Self>) -> bool {
+    fn changed(&mut self, _ctx: &Context<Self>, _old_props: &Self::Properties) -> bool {
         true
     }
 
@@ -174,11 +180,20 @@ impl<S: Scalar + 'static> Component for Axis<S> {
                     <line x1={p.x1.to_string()} y1={p.y1.to_string()} x2={p.x1.to_string()} y2={p.xy2.to_string()} class="line" />
                     { for (p.scale.ticks().iter()).map(|Tick { location: NormalisedValue(normalised_location), label }| {
                         let y = (p.xy2 - (normalised_location * scale)) as u32;
+                        // let ss = label.as_ref().unwrap().to_string().split("\n").map(|s| {
+                        //     html! {
+                        //     <text x={to_x.to_string()} y={y.to_string()} text-anchor={if p.orientation == Orientation::Left {"end"} else {"start"}} dominant-baseline={"middle"} class="text">{s}</text>
+                        //     }
+                        // });
+
                         html! {
                         <>
                             <line x1={x.to_string()} y1={y.to_string()} x2={to_x.to_string()} y2={y.to_string()} class="tick" />
                             if let Some(l) = label {
-                                <text x={to_x.to_string()} y={y.to_string()} text-anchor={if p.orientation == Orientation::Left {"end"} else {"start"}} class="text">{l.to_string()}</text>
+                                <text x={to_x.to_string()} y={y.to_string()} text-anchor={if p.orientation == Orientation::Left {"end"} else {"start"}} dominant-baseline={"middle"} class="text">{l.to_string()}</text>
+                            }
+                            if p.grid {
+                                <line x1={p.x1.to_string()} y1={y.to_string()} x2={p.yx2.to_string()} y2={y.to_string()} class="grid" />
                             }
                         </>
                         }
@@ -212,8 +227,16 @@ impl<S: Scalar + 'static> Component for Axis<S> {
                         html! {
                         <>
                             <line x1={x.to_string()} y1={y.to_string()} x2={x.to_string()} y2={to_y.to_string()} class="tick" />
-                            if let Some(l) = label {
-                                <text x={x.to_string()} y={to_y.to_string()} text-anchor="middle" transform-origin={format!("{} {}", x, to_y)} dominant-baseline={baseline.to_string()} class="text">{l.to_string()}</text>
+                            if let Some(l) = label {{
+                                for l.split('\n').enumerate().map(|(i, s)| {
+                                    html! {
+                                        <text x={x.to_string()} y={(to_y + i as f32 * 12.0).to_string()} text-anchor="middle" transform-origin={format!("{} {}", x, to_y + i as f32 * 30.0)} dominant-baseline={baseline.to_string()} class="text">{s}</text>
+                                    }
+                                })
+                            }}
+
+                            if p.grid {
+                                <line x1={x.to_string()} y1={p.y1.to_string()} x2={x.to_string()} y2={p.yx2.to_string()} class="grid" />
                             }
                         </>
                         }

@@ -70,16 +70,18 @@ fn app() -> Html {
                     name="some-y-axis"
                     orientation={Orientation::Left}
                     scale={Rc::clone(&v_scale)}
-                    x1={MARGIN} y1={MARGIN} xy2={HEIGHT - MARGIN}
+                    x1={MARGIN} y1={MARGIN} xy2={HEIGHT - MARGIN} yx2={WIDTH - MARGIN}
                     tick_len={TICK_LENGTH}
+                    grid={true}
                     title={"Some Y thing".to_string()} />
 
                 <Axis<i64>
                     name="some-x-axis"
                     orientation={Orientation::Bottom}
                     scale={Rc::clone(&h_scale)}
-                    x1={MARGIN} y1={HEIGHT - MARGIN} xy2={WIDTH - MARGIN}
+                    x1={MARGIN} y1={HEIGHT - MARGIN} xy2={WIDTH - MARGIN}  yx2={MARGIN}
                     tick_len={TICK_LENGTH}
+                    grid={true}
                     title={"Some X thing".to_string()} />
 
             </svg>
@@ -87,5 +89,5 @@ fn app() -> Html {
 }
 
 fn main() {
-    yew::start_app::<App>();
+    yew::Renderer::<App>::new().render();
 }
